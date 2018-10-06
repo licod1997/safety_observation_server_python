@@ -1,0 +1,14 @@
+1. download tensorflow and add models/research/object_detection to PATH
+2. clone project: https://github.com/licod1997/safety_observations_server_python.git
+3. install the following libraries:
+>> pip install django
+>> pip install djangorestframework
+>> pip install django-rest-swagger
+>> pip install tensorflow
+>> pip install pillow
+>> pip install numpy
+4. before starting the project, please run:
+>> python manage.py makemigrations detection
+>> python manage.py migrate --run-syncdb
+
+
