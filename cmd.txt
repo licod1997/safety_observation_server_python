@@ -8,3 +8,7 @@ pip install requests
 python manage.py makemigrations appname
 python manage.py migrate
 python manage.py migrate --run-syncdb
+python manage.py runserver 0.0.0.0:8000
+pyrcc5 -o resources.py resources.qrc
+python labelImg.py
+python labelImg.py [IMAGE_PATH] [PRE-DEFINED CLASS FILE]
