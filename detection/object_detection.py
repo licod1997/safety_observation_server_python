@@ -4,6 +4,7 @@ import numpy as np
 import PIL
 import time
 import cv2
+import base64
 
 from io import BytesIO
 from detection.models import DetectionResult
@@ -14,7 +15,7 @@ from utils import visualization_utils as vis_util
 from tensorflow.python.client import device_lib
 
 # Minimum ratio of detecting objects
-MIN_SCORE_THRESH = 0.1
+MIN_SCORE_THRESH = 0.4
 
 # Maximum number of objects detect in image
 MAX_BOXES_TO_DRAW = 20
@@ -121,11 +122,18 @@ detection_classes = detection_graph.get_tensor_by_name( 'detection_classes:0' )
 num_detections = detection_graph.get_tensor_by_name( 'num_detections:0' )
 
 
+# def rotateImage( image, angle ):
+#     image_center = tuple( np.array( image.shape[ 1::-1 ] ) / 2 )
+#     rot_mat = cv2.getRotationMatrix2D( image_center, angle, 1.0 )
+#     result = cv2.warpAffine( image, rot_mat, image.shape[ 1::-1 ], flags = cv2.INTER_LINEAR )
+#     return result
+
+
 def detect_object_in_image( base64_image ):
     start = time.time()
 
     # Convert base64 string to numpy array
-    image_np = np.asarray( PIL.Image.open( BytesIO( base64_image ) ), dtype = 'uint8' )
+    image_np = np.asarray( PIL.Image.open( BytesIO( base64_image ) ) )
     # Make image_np writeble, but no need to use this if using load_image_into_numpy_array func
     image_np.flags.writeable = True
 
@@ -164,15 +172,22 @@ def detect_object_in_image( base64_image ):
             if squeeze_classes[ i ] in category_index.keys():
                 tag = category_index[ squeeze_classes[ i ] ][ 'name' ]
             score = squeeze_score[ i ]
+            # if count == 0:
+            #     result = DetectionResult( tag = tag, score = score, image = encode_image ).__dict__
+            # else:
+            #     result = DetectionResult( tag = tag, score = score, image = None ).__dict__
             result = DetectionResult( tag = tag, score = score ).__dict__
             results.append( result )
     end = time.time()
 
+    converted_image = PIL.Image.fromarray( np.uint8( image_np ) )
+    converted_image.show()
+
     print( 'TF took: ' + str( end - start ) + ' with the return results: ' + str( results ) )
 
     # Show image on screen
-    converted_image = PIL.Image.fromarray( np.uint8( image_np ) )
-    converted_image.show()
+    # cv2.imshow( 'Object Detecion', cv2.resize(cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB), (720, 960)) )
+    # cv2.waitKey( 0 )
 
     return results
 
@@ -233,19 +248,34 @@ def detect_object_in_image( base64_image ):
 #                 [ detection_boxes, detection_scores, detection_classes, num_detections ],
 #                 feed_dict = { image_tensor: image_np_expanded } )
 #
+#             squeeze_boxes = np.squeeze( boxes )
+#             squeeze_classes = np.squeeze( classes ).astype( np.int32 )
+#             squeeze_score = np.squeeze( scores )
+#
 #             vis_util.visualize_boxes_and_labels_on_image_array(
 #                 image_np,
-#                 np.squeeze( boxes ),
-#                 np.squeeze( classes ).astype( np.int32 ),
-#                 np.squeeze( scores ),
+#                 squeeze_boxes,
+#                 squeeze_classes,
+#                 squeeze_score,
 #                 category_index,
 #                 use_normalized_coordinates = True,
 #                 line_thickness = 8,
-#                 min_score_thresh = .1)
-#             cv2.imshow( 'Object Detecion', image_np )
+#                 min_score_thresh = .2)
+#             image = cv2.resize( image_np, (960, 720) )
+#             cv2.imshow( 'Object Detecion', image )
+#             results = [ ]
+#             for i in range( 0, MAX_BOXES_TO_DRAW ):
+#                 if squeeze_score[ i ] > MIN_SCORE_THRESH:
+#                     tag = ''
+#                     if squeeze_classes[ i ] in category_index.keys():
+#                         tag = category_index[ squeeze_classes[ i ] ][ 'name' ]
+#                     score = squeeze_score[ i ]
+#                     result = DetectionResult( tag = tag, score = score ).__dict__
+#                     results.append( result )
 #             if cv2.waitKey( 1 ) & 0xFF == ord( 'q' ):
 #                 cap.release()
 #                 cv2.destroyAllWindows()
 #                 break
 #             end = time.time()
+#             print( 'TF took: ' + str( end - start ) + ' with the return results: ' + str( results ) )
 #             print('FPS: ' + str(1.0 / (end-start)))

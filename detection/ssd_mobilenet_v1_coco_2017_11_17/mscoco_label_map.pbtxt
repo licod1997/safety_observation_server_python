@@ -2,3 +2,7 @@ item {
   id: 1
   name: 'dangerous_thing'
 }
+item {
+  id: 2
+  name: 'dangerous_thing'
+}

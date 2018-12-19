@@ -1,16 +1,12 @@
+import base64
+
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from detection.serializers import FileSerializer, DetectionResultSerializer
-from detection.object_detection import detect_object_in_image
-from django.core.files.base import ContentFile
-from django.views.decorators.csrf import csrf_exempt
-from threading import Thread
 
-import base64
-import os
 import detection.clarifai_object_detection as Cl
-import detection.training_exporting as train
+from detection.object_detection import detect_object_in_image
+from detection.serializers import DetectionResultSerializer
 
 
 @api_view( [ 'POST' ] )
@@ -29,18 +25,4 @@ def upload_file( request ):
     return Response( results_serializer.errors, status = status.HTTP_400_BAD_REQUEST )
 
 
-thread = Thread()
-
-@api_view( [ 'GET' ] )
-def training( request ):
-    thread = Thread( target = train.train_export_model(), daemon = False )
-    thread.start()
-    return Response( status = status.HTTP_201_CREATED )
-
-
-@api_view( [ 'GET' ] )
-def check_thread_training( request ):
-    if thread.is_alive():
-        return Response( status = status.HTTP_201_CREATED )
-    return Response( status = status.HTTP_404_NOT_FOUND )
 

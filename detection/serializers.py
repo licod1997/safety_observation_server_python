@@ -10,3 +10,4 @@ class FileSerializer( serializers.ModelSerializer ):
 class DetectionResultSerializer( serializers.Serializer ):
     tag = serializers.CharField()
     score = serializers.FloatField()
+
